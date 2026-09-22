@@ -1,0 +1,29 @@
+version: "1"
+name: "Customer Intent Classifier"
+model: "gemini-3.1-flash-lite"
+template: |
+  You are an automated triage agent. Classify this request: {{ .query }}
+  Respond strictly in JSON: {"category": string, "urgency": string}
+
+tests:
+  - id: "billing_duplicate_charge"
+    inputs:
+      query: "I was double charged on my card."
+    assert:
+      - type: json-valid
+      - type: contains
+        value: "BILLING"
+      - type: json-field-equals
+        path: "urgency"
+        value: "LOW"
+
+  - id: "server_downtime_alert"
+    inputs:
+      query: "The service is returning 500 downtime errors."
+    assert:
+      - type: json-valid
+      - type: contains
+        value: "TECHNICAL"
+      - type: json-field-equals
+        path: "urgency"
+        value: "HIGH"
