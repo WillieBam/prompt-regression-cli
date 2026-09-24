@@ -9,6 +9,8 @@ import (
 	"prompt-regression-cli/internal/runner"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/renderer"
+	"github.com/olekukonko/tablewriter/tw"
 )
 
 func PrintResults(w io.Writer, results []runner.RunResult, asJSON bool) {
@@ -20,9 +22,16 @@ func PrintResults(w io.Writer, results []runner.RunResult, asJSON bool) {
 	}
 
 	table := tablewriter.NewWriter(w)
-	table.SetHeader([]string{"Status", "Test ID", "Duration", "Details"})
-	table.SetBorder(true)
-
+	table.Header([]string{"Status", "Test ID", "Duration", "Details"})
+	table.Options(tablewriter.WithRenderer(renderer.NewBlueprint((tw.Rendition{
+		Borders: tw.Border{
+			Top:    tw.On,
+			Bottom: tw.On,
+			Left:   tw.On,
+			Right:  tw.On,
+		},
+		Symbols: tw.NewSymbols(tw.StyleASCII),
+	}))))
 	for _, r := range results {
 		status := "PASS"
 		details := "-"
