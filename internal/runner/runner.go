@@ -3,6 +3,7 @@ package runner
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"os"
 	"sync"
 	"text/template"
@@ -35,6 +36,22 @@ type RunResult struct {
 	Duration time.Duration
 	Failures []string
 	Err      error
+}
+
+func (r RunResult) MarshalJSON() ([]byte, error) {
+	type Alias RunResult
+	var errStr *string
+	if r.Err != nil {
+		s := r.Err.Error()
+		errStr = &s
+	}
+	return json.Marshal(&struct {
+		Alias
+		Err *string `json:"Err"`
+	}{
+		Alias: Alias(r),
+		Err:   errStr,
+	})
 }
 
 func LoadSuite(path string) (*SuiteConfig, error) {
