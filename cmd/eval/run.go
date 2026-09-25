@@ -21,6 +21,7 @@ var runCmd = &cobra.Command{
 		suitePath, _ := cmd.Flags().GetString("suite")
 		concurrency, _ := cmd.Flags().GetInt("concurrency")
 		timeout, _ := cmd.Flags().GetDuration("timeout")
+		mockMode, _ := cmd.Flags().GetBool("mock")
 		asJSON := viper.GetBool("json")
 
 		suite, err := runner.LoadSuite(suitePath)
@@ -35,7 +36,13 @@ var runCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 
-		p := provider.NewGeminiProvider(viper.GetString("api_key"))
+		apiKey := viper.GetString("llm_api_key")
+		baseURL := viper.GetString("llm_base_url")
+		if mockMode {
+			apiKey = ""
+		}
+
+		p := provider.NewGeminiProvider(apiKey, baseURL)
 
 		resultChan := runner.ExecuteSuite(ctx, suite, p, concurrency)
 
@@ -58,7 +65,8 @@ var runCmd = &cobra.Command{
 }
 
 func init() {
-	runCmd.Flags().StringP("suite", "s", "testdata/customer_eval.yaml", "Path to test suite definition")
+	runCmd.Flags().StringP("suite", "s", "testdata/eval.yaml", "Path to test suite definition")
 	runCmd.Flags().IntP("concurrency", "c", 4, "Number of concurrent evaluation workers")
 	runCmd.Flags().DurationP("timeout", "t", 30*time.Second, "Suite timeout")
+	runCmd.Flags().BoolP("mock", "m", false, "Force mock mode for offline testing")
 }
