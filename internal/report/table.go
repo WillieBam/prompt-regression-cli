@@ -32,18 +32,32 @@ func PrintResults(w io.Writer, results []runner.RunResult, asJSON bool) {
 		},
 		Symbols: tw.NewSymbols(tw.StyleASCII),
 	}))))
+
+	passCount := 0
+	failCount := 0
+
 	for _, r := range results {
 		status := "PASS"
 		details := "-"
 		if !r.Passed {
 			status = "FAIL"
+			failCount++
 			if r.Err != nil {
 				details = r.Err.Error()
 			} else {
 				details = strings.Join(r.Failures, "; ")
 			}
+		} else {
+			passCount++
 		}
 		table.Append([]string{status, r.ID, fmt.Sprintf("%v", r.Duration), details})
 	}
 	table.Render()
+
+	// Print summary verdict
+	if failCount == 0 {
+		fmt.Fprintf(w, "\n\033[32m✔ SUITE PASSED\033[0m (%d/%d tests passed)\n", passCount, len(results))
+	} else {
+		fmt.Fprintf(w, "\n\033[31m✘ SUITE FAILED\033[0m (%d failed, %d passed, %d total)\n", failCount, passCount, len(results))
+	}
 }
