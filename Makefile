@@ -1,8 +1,11 @@
-.PHONY: mock pipeline bench lint 
+.PHONY: eval mock pipeline bench lint 
+
+eval:
+	go run main.go eval run -s testdata/eval.yaml
 
 # run the test suite using mock mode
 mock:
-	go run main.go eval run -s testdata/eval.yaml
+	go run main.go eval run -s testdata/eval.yaml --mock
 
 # output results as JSON for pipeline integration
 pipeline:
