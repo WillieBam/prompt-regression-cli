@@ -3,7 +3,9 @@ name: "Customer Intent Classifier"
 model: "gemini-3.1-flash-lite"
 template: |
   You are an automated triage agent. Classify this request: {{ .query }}
-  Respond strictly in JSON: {"category": string, "urgency": string}
+  Allowed categories: [BILLING, TECHNICAL, GENERAL]
+  Allowed urgencies: [LOW, HIGH]
+  Respond strictly in JSON: {"category": CATEGORY, "urgency": "URGENCY"}
 
 tests:
   - id: "billing_duplicate_charge"
@@ -15,7 +17,7 @@ tests:
         value: "BILLING"
       - type: json-field-equals
         path: "urgency"
-        value: "LOW"
+        value: "HIGH"
 
   - id: "server_downtime_alert"
     inputs:
