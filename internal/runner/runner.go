@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"sync"
 	"text/template"
@@ -66,13 +67,16 @@ func LoadSuite(path string) (*SuiteConfig, error) {
 	return &suite, nil
 }
 
-func ExecuteSuite(ctx context.Context, suite *SuiteConfig, p provider.ModelProvider, concurrency int) <-chan RunResult {
+func ExecuteSuite(ctx context.Context, suite *SuiteConfig, p provider.ModelProvider, concurrency int) (<-chan RunResult, error) {
 	out := make(chan RunResult, len(suite.Tests))
 	jobs := make(chan TestCase, len(suite.Tests))
 	var wg sync.WaitGroup
 
 	// Render prompt template
-	tmpl, _ := template.New("prompt").Parse(suite.Template)
+	tmpl, err := template.New("prompt").Parse(suite.Template)
+	if err != nil {
+		return nil, fmt.Errorf("parse prompt template: %w", err)
+	}
 
 	for i := 0; i < concurrency; i++ {
 		wg.Add(1)
@@ -93,7 +97,7 @@ func ExecuteSuite(ctx context.Context, suite *SuiteConfig, p provider.ModelProvi
 		close(out)
 	}()
 
-	return out
+	return out, nil
 }
 
 func runSingle(ctx context.Context, tc TestCase, tmpl *template.Template, model string, p provider.ModelProvider) RunResult {
