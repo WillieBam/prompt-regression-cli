@@ -10,3 +10,5 @@ var EvalCmd = &cobra.Command{
 func init() {
 	EvalCmd.AddCommand(runCmd)
 }
+
+var RunCmd = runCmd

@@ -3,7 +3,6 @@ package eval
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"prompt-regression-cli/internal/provider"
@@ -44,7 +43,10 @@ var runCmd = &cobra.Command{
 
 		p := provider.NewGeminiProvider(apiKey, baseURL)
 
-		resultChan := runner.ExecuteSuite(ctx, suite, p, concurrency)
+		resultChan, err := runner.ExecuteSuite(ctx, suite, p, concurrency)
+		if err != nil {
+			return err
+		}
 
 		var results []runner.RunResult
 		failed := 0
@@ -58,7 +60,7 @@ var runCmd = &cobra.Command{
 		report.PrintResults(cmd.OutOrStdout(), results, asJSON)
 
 		if failed > 0 {
-			os.Exit(1)
+			return fmt.Errorf("%d evaluation tests failed", failed)
 		}
 		return nil
 	},
