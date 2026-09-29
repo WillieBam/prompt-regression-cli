@@ -1,6 +1,6 @@
 # Prompt Regression & Evaluation CLI
 
-prompt-regression-cli is a high-concurrency evaluation and regression testing framework for LLMs and prompt templates built in Go.
+prompt-regression-cli is an evaluation and regression testing CLI for LLMs and prompt templates built in Go.
 
 It helps developers and AI engineers prevent regressions in model behavior, accuracy, latency, and schema compliance when changing prompts, tweaking model hyperparameters, or switching model versions.
 
@@ -33,9 +33,9 @@ It helps developers and AI engineers prevent regressions in model behavior, accu
    ```
 
 3. **Configure Environment Variables:**
-   Copy the `.env.example` file to `.env`:
+    Create a `.env` file in the repository root:
    ```bash
-   cp .env.example .env
+    touch .env
    ```
    Edit `.env` with your API credentials:
    ```env
@@ -69,6 +69,8 @@ prompt-regression-cli/
 │   │   └── table.go              # ASCII table generator & Pass/Fail summary verdict
 │   └── runner/                   # Concurrent test suite executor
 │       └── runner.go             # Worker pool, job dispatcher & template renderer
+│   └── tui/                      # Bubble Tea interactive menu and evaluation UI
+|
 ├── types/                        # Wire format Data Transfer Objects (DTOs)
 │   └── chat.go                   # OpenAI/Gemini Chat Completion request & response
 ├── testdata/                     # Test suites and mock inputs
@@ -80,7 +82,26 @@ prompt-regression-cli/
 
 ---
 
-## Commands to Use
+## Interactive Menu
+
+Run the CLI without a subcommand to open the Bubble Tea main menu:
+
+```bash
+go run .
+```
+
+Use the arrow keys or `j`/`k` to move through the menu, press `Enter` to select a command, and press `q` or `Ctrl+C` to quit. After an evaluation, benchmark, or lint command finishes, the menu opens again.
+
+The menu provides shortcuts for:
+
+* Running an evaluation suite
+* Benchmarking a sample prompt
+* Validating the sample YAML suite
+* Quitting the application
+
+The direct commands below remain available for automation and CI/CD workflows.
+
+## Commands
 
 ### 1. Running Evaluation Suites (`eval run`)
 
@@ -102,6 +123,11 @@ Execute evaluation suites defined in YAML against the target LLM.
   *(Or use Make)*:
   ```bash
   make mock
+  ```
+
+* **Run the interactive menu:**
+  ```bash
+  go run .
   ```
 
 * **Output results as JSON (for CI/CD pipelines):**
