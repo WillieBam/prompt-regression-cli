@@ -15,7 +15,7 @@ It helps developers and AI engineers prevent regressions in model behavior, accu
    ```
 2. **Make**: (Optional, recommended) For running automated Makefile targets.
 3. **LLM API Key**:
-   * A Google Gemini API key (or OpenAI-compatible provider key).
+   * A Google Gemini API key or OpenAI-compatible provider key.
 
 ---
 
@@ -39,9 +39,17 @@ It helps developers and AI engineers prevent regressions in model behavior, accu
    ```
    Edit `.env` with your API credentials:
    ```env
+  LLM_PROVIDER=gemini
    LLM_API_KEY=your_actual_api_key_here
    LLM_BASE_URL=url_to_access_llm
    ```
+
+  Supported providers are `gemini` and `openai`. For OpenAI, use:
+  ```env
+  LLM_PROVIDER=openai
+  LLM_API_KEY=sk-your-api-key
+  LLM_BASE_URL=https://api.openai.com/v1
+  ```
 
 ---
 
@@ -107,6 +115,46 @@ The direct commands below remain available for automation and CI/CD workflows.
 
 Execute evaluation suites defined in YAML against the target LLM.
 
+#### Use a custom YAML suite
+
+Create a YAML file with a suite definition, prompt template, inputs, and assertions. For example, `testdata/testing.yaml` contains a custom intent classification test:
+
+```yaml
+version: "1"
+name: "Custom Intent Test"
+model: "gemini-3.1-flash-lite"
+template: |
+  Classify this customer request: {{ .query }}
+  Respond strictly in JSON with category and urgency fields.
+  Use category GENERAL and urgency LOW for ordinary informational requests.
+
+tests:
+  - id: "general_information_request"
+    inputs:
+      query: "What are your business hours?"
+    assert:
+      - type: json-valid
+      - type: contains
+        value: "GENERAL"
+      - type: json-field-equals
+        path: "urgency"
+        value: "LOW"
+```
+
+Run your custom suite by passing its file path with `-s` or `--suite`:
+
+```bash
+go run main.go eval run --suite testdata/testing.yaml
+```
+
+Use mock mode to validate the suite without an API key:
+
+```bash
+go run main.go eval run --suite testdata/testing.yaml --mock
+```
+
+You can also run `go run .`, choose **Run evaluation**, and enter the custom YAML path when prompted. Press Enter to use the default `testdata/eval.yaml`.
+
 * **Run live evaluation against Gemini API:**
   ```bash
   go run main.go eval run -s testdata/eval.yaml
@@ -129,6 +177,7 @@ Execute evaluation suites defined in YAML against the target LLM.
   ```bash
   go run .
   ```
+  When you choose **Run evaluation**, promptctl asks for the YAML suite path. Press Enter to use `testdata/eval.yaml`.
 
 * **Output results as JSON (for CI/CD pipelines):**
   ```bash
@@ -144,6 +193,12 @@ Execute evaluation suites defined in YAML against the target LLM.
   # Run with 8 concurrent workers and a 45-second suite timeout
   go run main.go eval run -s testdata/eval.yaml -c 8 -t 45s
   ```
+
+* **Select a provider from the command line:**
+  ```bash
+  go run main.go --provider openai eval run -s testdata/testing.yaml
+  ```
+  The provider can also be selected with the `LLM_PROVIDER` environment variable. The default is `gemini`.
 
 ---
 
