@@ -1,7 +1,9 @@
 package tui
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -49,16 +51,39 @@ func newMenuModel() menuModel {
 	}
 }
 
-func RunMenu() (string, error) {
+func RunMenu(defaultSuitePath string) (string, string, error) {
 	program := tea.NewProgram(newMenuModel())
 	finalModel, err := program.Run()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	model := finalModel.(menuModel)
-	return model.selected.action, nil
+	if model.selected.action != "eval" {
+		return model.selected.action, "", nil
+	}
+
+	suitePath, err := promptForSuitePath(defaultSuitePath)
+	if err != nil {
+		return "", "", err
+	}
+	return model.selected.action, suitePath, nil
 }
+
+func promptForSuitePath(defaultPath string) (string, error) {
+	fmt.Printf("YAML suite path [%s]: ", defaultPath)
+	input, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	if err != nil && len(input) == 0 {
+		return "", err
+	}
+
+	input = strings.TrimSpace(input)
+	if input == "" {
+		return defaultPath, nil
+	}
+	return input, nil
+}
+
 func (m menuModel) Init() tea.Cmd {
 	return m.spinner.Tick
 }

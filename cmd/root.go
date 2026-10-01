@@ -17,13 +17,16 @@ var (
 		Short: "High-concurrency LLM evaluation and regression testing CLI",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			for {
-				action, err := tui.RunMenu()
+				action, suitePath, err := tui.RunMenu("testdata/eval.yaml")
 				if err != nil {
 					return err
 				}
 
 				switch action {
 				case "eval":
+					if err := eval.RunCmd.Flags().Set("suite", suitePath); err != nil {
+						return err
+					}
 					err = eval.RunCmd.RunE(eval.RunCmd, args)
 				case "bench":
 					err = benchCmd.RunE(benchCmd, []string{"Explain goroutines in one sentence"})
@@ -52,10 +55,12 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.promptctl.yaml)")
+	rootCmd.PersistentFlags().String("provider", "gemini", "LLM provider (gemini or openai, env: LLM_PROVIDER)")
 	rootCmd.PersistentFlags().String("llm-api-key", "", "API Key for target provider (env: PROMPTCTL_API_KEY)")
 	rootCmd.PersistentFlags().Bool("json", false, "Output results in JSON format")
 
 	_ = viper.BindPFlag("llm-api-key", rootCmd.PersistentFlags().Lookup("llm-api-key"))
+	_ = viper.BindPFlag("llm_provider", rootCmd.PersistentFlags().Lookup("provider"))
 	_ = viper.BindPFlag("json", rootCmd.PersistentFlags().Lookup("json"))
 
 	// register subcommands

@@ -1,0 +1,19 @@
+version: "1"
+name: "Custom Intent Test"
+model: "gemini-3.1-flash-lite"
+template: |
+  Classify this customer request: {{ .query }}
+  Respond strictly in JSON with category and urgency fields.
+  Use category GENERAL and urgency LOW for ordinary informational requests.
+
+tests:
+  - id: "general_information_request"
+    inputs:
+      query: "What are your business hours?"
+    assert:
+      - type: json-valid
+      - type: contains
+        value: "GENERAL"
+      - type: json-field-equals
+        path: "urgency"
+        value: "LOW"
