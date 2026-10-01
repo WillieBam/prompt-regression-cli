@@ -37,11 +37,15 @@ var runCmd = &cobra.Command{
 
 		apiKey := viper.GetString("llm_api_key")
 		baseURL := viper.GetString("llm_base_url")
+		providerName := viper.GetString("llm_provider")
 		if mockMode {
 			apiKey = ""
 		}
 
-		p := provider.NewGeminiProvider(apiKey, baseURL)
+		p, err := provider.NewProvider(providerName, apiKey, baseURL)
+		if err != nil {
+			return err
+		}
 
 		resultChan, err := runner.ExecuteSuite(ctx, suite, p, concurrency)
 		if err != nil {

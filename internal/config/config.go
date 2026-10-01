@@ -8,16 +8,20 @@ import (
 )
 
 type Config struct {
-	APIKey  string `mapstructure:"llm_api_key"`
-	BaseURL string `mapstructure:"llm_base_url"`
-	JSON    bool   `mapstructure:"json"`
+	Provider string `mapstructure:"llm_provider"`
+	APIKey   string `mapstructure:"llm_api_key"`
+	BaseURL  string `mapstructure:"llm_base_url"`
+	Model    string `mapstructure:"llm_model"`
+	JSON     bool   `mapstructure:"json"`
 }
 
 var current = &Config{}
 
 func Load(cfgFile string) (*Config, error) {
+	viper.SetDefault("llm_provider", "gemini")
 	viper.SetDefault("llm_api_key", "")
 	viper.SetDefault("llm_base_url", "")
+	viper.SetDefault("llm_model", "")
 	viper.SetDefault("json", false)
 
 	_ = gotenv.Load()
@@ -35,6 +39,8 @@ func Load(cfgFile string) (*Config, error) {
 
 	_ = viper.BindEnv("llm_api_key", "LLM_API_KEY")
 	_ = viper.BindEnv("llm_base_url", "LLM_BASE_URL")
+	_ = viper.BindEnv("llm_provider", "LLM_PROVIDER")
+	_ = viper.BindEnv("llm_model", "LLM_MODEL")
 
 	_ = viper.ReadInConfig()
 

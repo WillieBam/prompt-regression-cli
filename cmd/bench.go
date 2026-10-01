@@ -17,10 +17,17 @@ var benchCmd = &cobra.Command{
 		mockMode, _ := cmd.Flags().GetBool("mock")
 		apiKey := viper.GetString("llm_api_key")
 		baseurl := viper.GetString("llm_base_url")
+		providerName := viper.GetString("llm_provider")
+
 		if mockMode {
 			apiKey = ""
 		}
-		p := provider.NewGeminiProvider(apiKey, baseurl)
+
+		p, err := provider.NewProvider(providerName, apiKey, baseurl)
+		if err != nil {
+			return err
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
